@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Доска объявлений</title>
+    <style>
+        body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .ad { border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .ad h3 { margin-top: 0; color: #333; }
+        .price { color: green; font-weight: bold; }
+        .date { color: #666; font-size: 0.9em; }
+        .empty { text-align: center; padding: 40px; color: #888; }
+        h1 { color: #2c3e50; }
+    </style>
+</head>
+<body>
+    <h1>📋 Доска объявлений</h1>
+
+    {% if ads %}
+        {% for ad in ads %}
+            <div class="ad">
+                <h3>{{ ad.title }}</h3>
+                <p>{{ ad.description }}</p>
+                <div class="price">💰 Цена: {% if ad.price %}{{ ad.price }} руб.{% else %}Договорная{% endif %}</div>
+                <div class="phone">📞 Телефон: {{ ad.phone }}</div>
+                <div class="date">📅 Дата: {{ ad.created_at|date:"d.m.Y H:i" }}</div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">
+            <h3>Объявлений пока нет 😔</h3>
+            <p>Будьте первым, кто добавит объявление!</p>
+        </div>
+    {% endif %}
+</body>
+</html>
