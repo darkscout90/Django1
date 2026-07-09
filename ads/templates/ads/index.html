@@ -12,12 +12,22 @@
         .date { color: #666; font-size: 0.9em; }
         .empty { text-align: center; padding: 40px; color: #888; }
         h1 { color: #2c3e50; }
+        .react-ad { border: 1px solid #007bff; padding: 15px; margin: 10px 0; border-radius: 5px; background: #f8f9fa; }
+        .react-ad h3 { color: #007bff; }
+        .search-input { padding: 8px; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 15px; }
     </style>
+
+    <!-- React и Babel с CDN -->
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+
     <script src="{% static 'code.js' %}"></script>
 </head>
 <body>
     <h1>📋 Доска объявлений</h1>
 
+    <!-- Старая часть (Django-рендеринг) -->
     {% if ads %}
         {% for ad in ads %}
             <div class="ad">
@@ -34,6 +44,80 @@
             <p>Будьте первым, кто добавит объявление!</p>
         </div>
     {% endif %}
+
+    <hr style="margin: 30px 0; border: 1px dashed #ccc;">
+
+    <h2>⚛️ Тестовый React-компонент (с поиском)</h2>
+    <div id="react-root"></div>
+
+    <!-- Передача данных из Django (универсальный способ) -->
+    <script id="ads-data" type="application/json">
+    [
+        {% for ad in ads %}
+        {
+            "id": {{ ad.id }},
+            "title": "{{ ad.title|escapejs }}",
+            "description": "{{ ad.description|escapejs }}",
+            "price": {% if ad.price %}{{ ad.price }}{% else %}null{% endif %},
+            "phone": "{{ ad.phone|escapejs }}",
+            "created_at": "{{ ad.created_at|date:'d.m.Y H:i' }}"
+        }{% if not forloop.last %},{% endif %}
+        {% empty %}
+        {% endfor %}
+    ]
+    </script>
+
+    <!-- Оборачиваем React-код в {% verbatim %}, чтобы Django не трогал фигурные скобки -->
+    {% verbatim %}
+    <script type="text/babel">
+        const adsData = JSON.parse(document.getElementById('ads-data').textContent);
+
+        function AdItem({ ad }) {
+            return (
+                <div className="react-ad">
+                    <h3>{ad.title}</h3>
+                    <p>{ad.description}</p>
+                    <div className="price">💰 Цена: {ad.price ? ad.price + ' руб.' : 'Договорная'}</div>
+                    <div className="phone">📞 Телефон: {ad.phone}</div>
+                    <div className="date">📅 Дата: {ad.created_at}</div>
+                </div>
+            );
+        }
+
+        function AdList() {
+            const [ads, setAds] = React.useState(adsData);
+            const [search, setSearch] = React.useState('');
+
+            const filteredAds = ads.filter(ad =>
+                ad.title.toLowerCase().includes(search.toLowerCase()) ||
+                ad.description.toLowerCase().includes(search.toLowerCase())
+            );
+
+            return (
+                <div>
+                    <input
+                        type="text"
+                        placeholder="🔍 Поиск по React-объявлениям..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="search-input"
+                    />
+                    {filteredAds.length === 0 ? (
+                        <div className="empty">
+                            <h3>Ничего не найдено 😔</h3>
+                            <p>Попробуйте изменить поиск.</p>
+                        </div>
+                    ) : (
+                        filteredAds.map(ad => <AdItem key={ad.id} ad={ad} />)
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.render(<AdList />, document.getElementById('react-root'));
+    </script>
+    {% endverbatim %}
+
     <footer>
         <h3>Подвал</h3>
     </footer>
