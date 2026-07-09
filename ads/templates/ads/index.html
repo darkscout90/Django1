@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -12,6 +13,7 @@
         .empty { text-align: center; padding: 40px; color: #888; }
         h1 { color: #2c3e50; }
     </style>
+    <script src="{% static 'code.js' %}"></script>
 </head>
 <body>
     <h1>📋 Доска объявлений</h1>
@@ -32,5 +34,8 @@
             <p>Будьте первым, кто добавит объявление!</p>
         </div>
     {% endif %}
+    <footer>
+        <h3>Подвал</h3>
+    </footer>
 </body>
 </html>
